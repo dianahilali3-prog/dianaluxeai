@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DianaLuxe AI — Image & Vidéo</title>
+<style>
+:root{
+  --rose-powder:#f4c2c2; --rose-metal:#e8a0b8; --rose-deep:#d47a9a;
+  --silver:#d8d8e0; --silver-chrome:#c0c0c8; --silver-light:#eaeaf0;
+  --bg:#0d0b10; --bg-2:#15121a; --bg-3:#1e1a24;
+  --glass:rgba(30,26,36,0.72); --glass-border:rgba(232,160,184,0.18);
+  --ink:#f0eaf0; --ink-dim:#9a8e9a; --ink-faint:#5a4e5a;
+  --success:#5a9d7a; --error:#c86a7a; --warn:#d4a05a;
+  --radius:16px; --font:'-apple-system','BlinkMacSystemFont','Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh}
+body{
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 0%, rgba(232,160,184,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 100% 30%, rgba(200,200,216,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(232,160,184,0.04) 0%, transparent 50%),
+    var(--bg);
+  background-attachment:fixed;
+  padding:1.2rem 1rem 10rem;font-size:14px;line-height:1.5;max-width:1100px;margin:0 auto;
+}
+header{text-align:center;padding:1.2rem 0 1.6rem;position:relative;margin-bottom:1rem}
+header::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:160px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--rose-metal),var(--silver),transparent);opacity:.5}
+.logo-mark{display:inline-block;font-family:Georgia,'Times New Roman',serif;font-size:0.7rem;letter-spacing:0.5em;
+  color:var(--rose-metal);text-transform:uppercase;margin-bottom:0.5rem;opacity:.8}
+h1{font-family:Georgia,'Times New Roman',serif;font-size:2rem;font-weight:300;letter-spacing:0.02em;
+  background:linear-gradient(135deg,var(--rose-powder),var(--silver-light),var(--rose-metal));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.subtitle{font-size:.8rem;color:var(--ink-dim);font-style:italic;margin-top:.3rem}
+
+.toast{position:fixed;top:1.2rem;left:50%;transform:translateX(-50%) translateY(-120px);
+  background:var(--bg-3);border:1px solid var(--glass-border);border-left:3px solid var(--rose-metal);
+  color:var(--ink);padding:.8rem 1.3rem;border-radius:12px;font-size:.82rem;z-index:1000;opacity:0;
+  transition:all .35s cubic-bezier(.2,.9,.3,1.1);max-width:90vw;text-align:center;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);backdrop-filter:blur(16px);display:flex;align-items:center;gap:.5rem}
+.toast.visible{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--error)}
+.toast.warn{border-left-color:var(--warn)}
+
+.api-panel{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1rem;transition:box-shadow .3s}
+.api-panel.ok{box-shadow:inset 3px 0 0 var(--success),0 0 30px rgba(90,157,122,.08)}
+.api-key-input{width:100%;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--glass-border);
+  background:rgba(10,8,14,.7);color:var(--ink);font-family:var(--mono);font-size:.78rem;margin-bottom:.6rem}
+.api-key-input:focus{outline:none;border-color:var(--rose-metal);box-shadow:0 0 0 3px rgba(232,160,184,.1)}
+.api-save-btn{width:100%;padding:.75rem;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--rose-deep),var(--rose-metal));color:#fff;
+  font-size:.82rem;font-weight:600;letter-spacing:.1em;cursor:pointer;transition:opacity .2s;font-family:inherit}
+.api-save-btn:active{opacity:.7}
+.api-status{font-size:.72rem;padding:.5rem .8rem;border-radius:8px;margin-top:.6rem;
+  display:flex;align-items:center;gap:.5rem;background:rgba(10,8,14,.5);color:var(--ink-dim)}
+.api-status.ok{background:rgba(90,157,122,.08);color:var(--success)}
+.api-status .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);flex-shrink:0}
+.api-status.ok .dot{background:var(--success);box-shadow:0 0 8px var(--success)}
+
+.section{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);
+  border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
+.section-header{padding:.9rem 1.1rem;cursor:pointer;user-select:none;display:flex;
+  justify-content:space-between;align-items:center}
+.section-header:active{background:rgba(255,255,255,.02)}
+.section-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink-dim);font-weight:600;
+  display:flex;align-items:center;gap:.5rem}
+.section-title .badge{display:inline-block;padding:.1rem .45rem;background:transparent;color:var(--rose-metal);
+  border:1px solid var(--rose-deep);border-radius:4px;font-size:.58rem;letter-spacing:.1em;font-weight:600}
+.chevron{font-size:.65rem;color:var(--ink-faint);transition:transform .25s}
+.section.open .chevron{transform:rotate(180deg);color:var(--rose-metal)}
+.section-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.section.open .section-body{max-height:12000px}
+.section-content{padding:0 1.1rem 1.1rem}
+
+.mode-tabs{display:flex;gap:.4rem;margin-bottom:1rem}
+.mode-tab{flex:1;padding:.7rem .4rem;border-radius:10px;border:1px solid var(--glass-border);
+  background:rgba(10,8,14,.4);color:var(--ink-dim);font-size:.72rem;font-weight:600;text-align:center;
+  cursor:pointer;transition:all .2s;user-select:none;font-family:inherit}
+.mode-tab.selected{background:linear-gradient(135deg,rgba(232,160,184,.15),rgba(200,200,216,.08));
+  border-color:var(--rose-metal);color:var(--rose-powder)}
+
+.prompt-area{width:100%;min-height:100px;padding:.9rem 1rem;border-radius:12px;
+  border:1px solid var(--glass-border);background:rgba(10,8,14,.6);color:var(--ink);
+  font-family:inherit;font-size:.88rem;line-height:1.55;resize:vertical}
+.prompt-area:focus{outline:none;border-color:var(--rose-metal);box-shadow:0 0 0 3px rgba(232,160,184,.08)}
+.prompt-area::placeholder{color:var(--ink-faint)}
+
+.ref-zone{margin-top:.8rem;border:2px dashed var(--glass-border);border-radius:12px;padding:1.2rem 1rem;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;background:rgba(10,8,14,.3)}
+.ref-zone:hover{border-color:var(--rose-metal);background:rgba(232,160,184,.03)}
+.ref-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.ref-zone .ref-icon{font-size:1.8rem;color:var(--rose-metal);opacity:.5;margin-bottom:.4rem}
+.ref-zone .ref-text{font-size:.78rem;color:var(--ink-dim)}
+.ref-zone .ref-hint{font-size:.66rem;color:var(--ink-faint);margin-top:.3rem;font-family:var(--mono)}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:.5rem;margin-top:.7rem}
+.ref-thumb{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--glass-border);aspect-ratio:1}
+.ref-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ref-thumb .rm{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;
+  background:rgba(0,0,0,.7);color:#fff;border:none;font-size:11px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:.8rem}
+.control label{display:block;font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-dim);margin-bottom:.35rem;font-weight:600}
+.control select{width:100%;padding:.65rem .7rem;border-radius:9px;border:1px solid var(--glass-border);
+  background:rgba(10,8,14,.6);color:var(--ink);font-size:.82rem;font-family:inherit;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path fill='%23e8a0b8' d='M0 0l5 6 5-6z'/></svg>");
+  background-repeat:no-repeat;background-position:right .7rem center;background-size:9px}
+.control select:focus{outline:none;border-color:var(--rose-metal)}
+
+.btn-generate{width:100%;padding:1rem;border-radius:12px;border:none;margin-top:1rem;
+  background:linear-gradient(135deg,var(--rose-deep),var(--rose-metal),var(--silver-chrome));
+  color:#0d0b10;font-size:.92rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;font-family:inherit;
+  box-shadow:0 8px 28px rgba(232,160,184,.2)}
+.btn-generate:hover:not(:disabled){box-shadow:0 12px 36px rgba(232,160,184,.35)}
+.btn-generate:active:not(:disabled){transform:scale(.98)}
+.btn-generate:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+
+.task-list{margin-top:1rem}
+.task-item{background:rgba(10,8,14,.5);border:1px solid var(--glass-border);border-radius:12px;
+  padding:.8rem 1rem;margin-bottom:.6rem;transition:border-color .3s}
+.task-item.processing{border-color:var(--rose-metal)}
+.task-item.done{border-color:var(--success)}
+.task-item.error{border-color:var(--error)}
+.task-header{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.task-type{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.task-type.image{color:var(--rose-metal)}
+.task-type.video{color:var(--silver-chrome)}
+.task-status{font-size:.66rem;color:var(--ink-dim);font-family:var(--mono)}
+.task-prompt{font-size:.74rem;color:var(--ink-dim);overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;margin-bottom:.5rem}
+.task-progress{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.task-progress-fill{height:100%;background:linear-gradient(90deg,var(--rose-deep),var(--rose-metal));
+  border-radius:2px;transition:width .4s;width:0%}
+.task-result{margin-top:.7rem;border-radius:8px;overflow:hidden;background:#000}
+.task-result img,.task-result video{width:100%;display:block;max-height:300px;object-fit:contain}
+.task-actions{display:flex;gap:.4rem;margin-top:.5rem;flex-wrap:wrap}
+.task-actions button,.task-actions a{flex:1;min-width:80px;padding:.5rem;border-radius:8px;
+  border:1px solid var(--glass-border);background:rgba(255,255,255,.03);color:var(--ink-dim);
+  font-size:.66rem;font-weight:600;text-align:center;cursor:pointer;text-decoration:none;
+  font-family:inherit;transition:all .15s}
+.task-actions button:hover,.task-actions a:hover{color:var(--rose-powder);border-color:var(--rose-metal)}
+
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.6rem;margin-top:.6rem}
+.history-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--glass-border);
+  aspect-ratio:9/16;background:#000;cursor:pointer}
+.history-item img,.history-item video{width:100%;height:100%;object-fit:cover;display:block}
+.history-item .hist-type{position:absolute;top:3px;left:3px;padding:1px 5px;border-radius:3px;
+  font-size:.55rem;font-family:var(--mono);font-weight:700;
+  background:rgba(0,0,0,.7);color:var(--rose-metal);text-transform:uppercase}
+.history-empty{text-align:center;padding:2rem;color:var(--ink-faint);font-size:.8rem;font-style:italic}
+
+.status-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(13,11,16,.92);
+  backdrop-filter:blur(20px);border-top:1px solid var(--glass-border);color:var(--ink);
+  padding:.75rem 1.1rem;font-size:.74rem;display:flex;align-items:center;gap:.6rem;
+  transform:translateY(100%);transition:transform .3s;z-index:100;font-family:var(--mono)}
+.status-bar.visible{transform:translateY(0)}
+.spinner{width:12px;height:12px;border:2px solid rgba(232,160,184,.2);border-top-color:var(--rose-metal);
+  border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.hidden{display:none!important}
+@media(max-width:480px){
+  h1{font-size:1.6rem}
+  .controls{grid-template-columns:1fr}
+  body{padding-bottom:12rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">✦ DianaLuxe</div>
+  <h1>DianaLuxe AI</h1>
+  <p class="subtitle">Images & vidéos générées par intelligence artificielle</p>
+</header>
+
+<!-- API Key -->
+<div class="api-panel" id="api-panel">
+  <input type="password" class="api-key-input" id="api-key-input"
+         placeholder="Collez votre clé Agnes AI (sk-...)" autocomplete="off" spellcheck="false">
+  <button type="button" class="api-save-btn" id="api-save-btn">Enregistrer la clé</button>
+  <div class="api-status" id="api-status">
+    <span class="dot"></span>
+    <span id="api-status-text">Aucune clé API — DianaLuxe ne peut pas générer</span>
+  </div>
+</div>
+
+<!-- Mode -->
+<div class="section open" id="section-create">
+  <div class="section-header" data-toggle="section-create">
+    <span class="section-title">✦ Créer <span class="badge">priorité vidéo</span></span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+
+    <div class="mode-tabs" id="mode-tabs">
+      <div class="mode-tab selected" data-mode="image">🖼️ Image</div>
+      <div class="mode-tab" data-mode="video">🎬 Vidéo</div>
+      <div class="mode-tab" data-mode="both">✦ Les deux</div>
+    </div>
+
+    <textarea class="prompt-area" id="prompt-input"
+      placeholder="Décrivez votre création… (ex : Une femme en robe rose métallisé marchant dans un couloir de verre, lumière cinématographique)"></textarea>
+
+    <div class="ref-zone" id="ref-zone">
+      <input type="file" id="ref-input" accept="image/*" multiple>
+      <div class="ref-icon">＋</div>
+      <div class="ref-text">Ajouter des images de référence</div>
+      <div class="ref-hint">Envoyées réellement au modèle · max 5</div>
+    </div>
+    <div class="ref-grid" id="ref-grid"></div>
+
+    <div class="controls">
+      <div class="control">
+        <label>Style</label>
+        <select id="style-select">
+          <option value="cinematic">Cinématographique</option>
+          <option value="photorealistic">Photoréaliste</option>
+          <option value="fashion">Mode / Luxe</option>
+          <option value="anime">Anime</option>
+          <option value="fantasy">Fantastique</option>
+          <option value="documentary">Documentaire</option>
+          <option value="3d">3D</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Format</label>
+        <select id="format-select">
+          <option value="9:16">9:16 · Vertical</option>
+          <option value="16:9">16:9 · Horizontal</option>
+          <option value="1:1">1:1 · Carré</option>
+          <option value="4:5">4:5 · Portrait</option>
+          <option value="21:9">21:9 · Cinéma</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Durée vidéo</label>
+        <select id="duration-select">
+          <option value="4">4 secondes</option>
+          <option value="5" selected>5 secondes</option>
+          <option value="8">8 secondes</option>
+          <option value="10">10 secondes</option>
+          <option value="12">12 secondes</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Qualité image</label>
+        <select id="quality-select">
+          <option value="1K">1K</option>
+          <option value="2K" selected>2K</option>
+          <option value="3K">3K</option>
+          <option value="4K">4K</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="button" class="btn-generate" id="generate-btn" disabled>
+      ✦ Générer
+    </button>
+
+  </div></div>
+</div>
+
+<!-- Tasks -->
+<div class="section open" id="section-tasks">
+  <div class="section-header" data-toggle="section-tasks">
+    <span class="section-title">⏳ Tâches en cours</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+    <div class="task-list" id="task-list">
+      <div style="text-align:center;padding:1.5rem;color:var(--ink-faint);font-size:.78rem;font-style:italic;">
+        Aucune tâche. Lancez une génération.
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- History -->
+<div class="section" id="section-history">
+  <div class="section-header" data-toggle="section-history">
+    <span class="section-title">📁 Historique</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+    <div class="history-grid" id="history-grid"></div>
+    <div class="history-empty" id="history-empty">Vos créations apparaîtront ici.</div>
+  </div></div>
+</div>
+
+<div class="status-bar" id="status-bar">
+  <div class="spinner"></div>
+  <span id="status-text">Prêt</span>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-text">Message</span>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════════
+const API_BASE = 'https://apihub.agnes-ai.com/v1';
+const POLL_BASE = 'https://apihub.agnes-ai.com/agnesapi';
+const MODEL_IMAGE = 'agnes-image-2.5-flash';
+const MODEL_VIDEO = 'agnes-video-2.5-flash';
+const API_KEY_STORAGE = 'dianaluxe_api_key_v1';
+
+const STYLE_PROMPTS = {
+  cinematic: 'cinematic photography, dramatic lighting, shallow depth of field, film grain, anamorphic lens, professional color grading',
+  photorealistic: 'photorealistic, ultra detailed, natural lighting, 8k, sharp focus, realistic skin texture',
+  fashion: 'high fashion editorial photography, studio lighting, vogue aesthetic, elegant pose, luxury brand campaign',
+  anime: 'anime style, japanese animation, vibrant colors, clean line art, studio ghibli inspired',
+  fantasy: 'fantasy art, magical atmosphere, ethereal lighting, epic composition, concept art',
+  documentary: 'documentary photography, natural light, candid moment, raw authentic, national geographic style',
+  '3d': '3D render, octane render, volumetric lighting, subsurface scattering, pixar style'
+};
+
+const FORMAT_MAP = {
+  image: { '9:16':'9:16', '16:9':'16:9', '1:1':'1:1', '4:5':'4:5', '21:9':'21:9' },
+  video: { '9:16':'9:16', '16:9':'16:9', '1:1':'1:1', '4:5':'4:5', '21:9':'21:9' }
+};
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+const state = {
+  apiKey: '',
+  mode: 'image',
+  references: [],
+  tasks: [],
+  history: [],
+  isGenerating: false
+};
+
+// ══════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+let toastTimer=null;
+function toast(msg,type='success',dur=2800){
+  const t=document.getElementById('toast'),i=document.getElementById('toast-icon'),x=document.getElementById('toast-text');
+  if(!t)return;
+  t.classList.remove('visible','success','error','warn');void t.offsetWidth;
+  i.textContent={success:'✓',error:'✕',warn:'⚠'}[type]||'✓';
+  x.textContent=msg;t.classList.add(type);
+  requestAnimationFrame(()=>t.classList.add('visible'));
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('visible'),dur);
+}
+
+function setStatus(text){
+  const bar=document.getElementById('status-bar'),txt=document.getElementById('status-text');
+  if(!bar||!txt)return;
+  if(text){bar.classList.add('visible');txt.textContent=text}
+  else bar.classList.remove('visible');
+}
+
+function formatTime(s){
+  if(s<60)return Math.round(s)+'s';
+  return Math.floor(s/60)+'m '+Math.round(s%60)+'s';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// API KEY
+// ══════════════════════════════════════════════════════════════════
+function getKey(){try{return(localStorage.getItem(API_KEY_STORAGE)||'').trim()}catch(e){return''}}
+function saveKey(){
+  const inp=document.getElementById('api-key-input');
+  const k=inp.value.trim();
+  if(!k){try{localStorage.removeItem(API_KEY_STORAGE)}catch(e){}updateApiUI();toast('Clé supprimée','warn');return}
+  if(!k.startsWith('sk-')){if(!confirm('La clé ne commence pas par "sk-". Sauvegarder ?'))return}
+  try{localStorage.setItem(API_KEY_STORAGE,k);state.apiKey=k;updateApiUI();toast('Clé enregistrée','success');inp.blur()}
+  catch(e){toast('Erreur sauvegarde','error')}
+}
+function updateApiUI(){
+  const panel=document.getElementById('api-panel'),inp=document.getElementById('api-key-input'),
+        st=document.getElementById('api-status'),stxt=document.getElementById('api-status-text');
+  const k=getKey();state.apiKey=k;
+  if(k){panel.classList.add('ok');st.classList.add('ok');stxt.textContent='Clé active · '+k.slice(0,8)+'…'+k.slice(-4);inp.value=k}
+  else{panel.classList.remove('ok');st.classList.remove('ok');stxt.textContent='Aucune clé API — DianaLuxe ne peut pas générer';inp.value=''}
+  updateGenerateBtn();
+}
+
+function updateGenerateBtn(){
+  const btn=document.getElementById('generate-btn');
+  const hasKey=!!getKey();
+  const hasPrompt=document.getElementById('prompt-input').value.trim().length>3;
+  btn.disabled=!hasKey||!hasPrompt||state.isGenerating;
+  if(state.isGenerating)btn.textContent='⏳ Génération…';
+  else if(!hasKey)btn.textContent='🔑 Ajoutez votre clé API';
+  else if(!hasPrompt)btn.textContent='✍️ Décrivez votre création';
+  else btn.textContent='✦ Générer';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// REFERENCES
+// ══════════════════════════════════════════════════════════════════
+function fileToDataUri(file){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file)})
+}
+async function handleRefFiles(files){
+  const list=Array.from(files).filter(f=>f.type.startsWith('image/')).slice(0,5-state.references.length);
+  for(const f of list){
+    try{
+      const raw=await fileToDataUri(f);
+      const compressed=await compressImage(raw,1024);
+      state.references.push({id:uid(),dataUri:compressed,name:f.name});
+    }catch(e){}
+  }
+  renderRefs();
+}
+async function compressImage(dataUrl,maxSide){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      let{width,height}=img;
+      const sc=Math.min(1,maxSide/Math.max(width,height));
+      width=Math.round(width*sc);height=Math.round(height*sc);
+      const c=document.createElement('canvas');c.width=width;c.height=height;
+      c.getContext('2d').drawImage(img,0,0,width,height);
+      res(c.toDataURL('image/jpeg',0.85));
+    };
+    img.onerror=()=>res(dataUrl);img.src=dataUrl;
+  })
+}
+function renderRefs(){
+  const grid=document.getElementById('ref-grid');
+  grid.innerHTML=state.references.map(r=>
+    '<div class="ref-thumb"><img src="'+r.dataUri+'"><button class="rm" data-ref="'+r.id+'">✕</button></div>'
+  ).join('');
+  grid.querySelectorAll('[data-ref]').forEach(b=>{
+    b.addEventListener('click',()=>{state.references=state.references.filter(x=>x.id!==b.dataset.ref);renderRefs()})
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// API CALLS
+// ══════════════════════════════════════════════════════════════════
+async function apiFetch(url,options={},label='API',attempts=4){
+  for(let i=0;i<attempts;i++){
+    try{
+      const res=await fetch(url,options);
+      if(res.status===429){const w=[15,30,60,90][Math.min(i,3)];setStatus('Limite API — attente '+w+'s');await sleep(w*1000);continue}
+      if(res.status>=500){await sleep((i+1)*3000);continue}
+      return res;
+    }catch(e){await sleep((i+1)*2000)}
+  }
+  return fetch(url,options);
+}
+
+async function generateImage(prompt,size,ratio){
+  const body={
+    model:MODEL_IMAGE,
+    prompt:prompt,
+    size:size,
+    ratio:ratio,
+    n:1,
+    extra_body:{response_format:'url'}
+  };
+  const res=await apiFetch(API_BASE+'/images/generations',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+state.apiKey,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  },'Image');
+  if(!res.ok){const e=await res.text();throw new Error('Image HTTP '+res.status+' — '+e.slice(0,200))}
+  const data=await res.json();
+  const item=data.data&&data.data[0];
+  if(!item)throw new Error('Pas de donnée image');
+  if(item.url)return item.url;
+  if(item.b64_json)return 'data:image/png;base64,'+item.b64_json;
+  throw new Error('Format image inconnu');
+}
+
+async function createVideoTask(prompt,ratio,duration,firstFrame,lastFrame,refImages){
+  const body={
+    model:MODEL_VIDEO,
+    prompt:prompt,
+    mode:'text',
+    seconds:String(duration),
+    size:'720P',
+    aspect_ratio:ratio,
+    n:1
+  };
+  if(firstFrame||lastFrame){
+    body.mode='keyframe';
+    if(firstFrame)body.first_frame=firstFrame;
+    if(lastFrame)body.last_frame=lastFrame;
+  } else if(refImages&&refImages.length>0){
+    body.mode='reference';
+    body.images=refImages;
+  }
+  const res=await apiFetch(API_BASE+'/videos',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+state.apiKey,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  },'Video Create');
+  if(!res.ok){const e=await res.text();throw new Error('Video create HTTP '+res.status+' — '+e.slice(0,200))}
+  const data=await res.json();
+  const vid=data.video_id||data.id||data.task_id;
+  if(!vid)throw new Error('Pas de video_id');
+  return vid;
+}
+
+async function pollVideo(videoId,onProgress){
+  const start=Date.now();
+  let lastStatus='';
+  for(let i=0;i<120;i++){
+    if(Date.now()-start>900000)throw new Error('Timeout vidéo (15 min)');
+    await sleep(2500);
+    const url=POLL_BASE+'?video_id='+encodeURIComponent(videoId)+'&model_name='+encodeURIComponent(MODEL_VIDEO);
+    try{
+      const res=await fetch(url,{headers:{'Authorization':'Bearer '+state.apiKey}});
+      if(!res.ok)continue;
+      const d=await res.json();
+      const st=d.status||'unknown';
+      const pr=d.progress||0;
+      if(st!==lastStatus){lastStatus=st;onProgress(st,pr)}
+      if(st==='completed'||st==='succeeded'||st==='done'){
+        const vu=d.url||(d.metadata&&d.metadata.url)||(d.output&&d.output.url);
+        if(!vu)throw new Error('Terminé mais pas d\'URL');
+        return vu;
+      }
+      if(st==='failed'||st==='error')throw new Error('Échec vidéo : '+(d.error||st));
+      onProgress(st,pr);
+    }catch(e){if(e.message.includes('Échec'))throw e}
+  }
+  throw new Error('Délai maximal dépassé');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PIPELINE
+// ══════════════════════════════════════════════════════════════════
+async function runGeneration(){
+  if(state.isGenerating)return;
+  const prompt=document.getElementById('prompt-input').value.trim();
+  if(!prompt){toast('Décrivez votre création','warn');return}
+  if(!getKey()){toast('Ajoutez votre clé API','error');return}
+
+  state.isGenerating=true;
+  updateGenerateBtn();
+  setStatus('Génération en cours…');
+
+  const mode=state.mode;
+  const style=document.getElementById('style-select').value;
+  const format=document.getElementById('format-select').value;
+  const duration=parseInt(document.getElementById('duration-select').value,10);
+  const quality=document.getElementById('quality-select').value;
+  const stylePrompt=STYLE_PROMPTS[style]||'';
+  const fullPrompt=stylePrompt?prompt+', '+stylePrompt:prompt;
+  const refImages=state.references.map(r=>r.dataUri);
+
+  // Build tasks
+  const tasksToRun=[];
+  if(mode==='image'||mode==='both'){
+    const t={id:uid(),type:'image',status:'processing',progress:'Initialisation…',result:null,error:null,startTime:Date.now(),prompt:prompt};
+    state.tasks.unshift(t);tasksToRun.push(t);
+    renderTasks();
+    try{
+      setStatus('Image — génération…');
+      const url=await generateImage(fullPrompt,quality,format);
+      t.status='done';t.result={url:url,kind:'image'};t.progress='Terminé';
+      addHistory({type:'image',url:url,prompt:prompt,ts:Date.now()});
+    }catch(e){t.status='error';t.error=e.message}
+  }
+
+  if(mode==='video'||mode==='both'){
+    const t={id:uid(),type:'video',status:'processing',progress:'Création tâche…',result:null,error:null,startTime:Date.now(),prompt:prompt};
+    state.tasks.unshift(t);tasksToRun.push(t);
+    renderTasks();
+    try{
+      setStatus('Vidéo — création de la tâche…');
+      const refs=refImages.slice(0,5);
+      const vid=await createVideoTask(fullPrompt,format,duration,null,null,refs);
+      t.progress='Tâche créée · attente…';
+      renderTasks();
+      const url=await pollVideo(vid,(st,pr)=>{t.progress=st+' · '+pr+'%';renderTasks()});
+      t.status='done';t.result={url:url,kind:'video'};t.progress='Terminé';
+      addHistory({type:'video',url:url,prompt:prompt,ts:Date.now(),format:format,duration:duration});
+    }catch(e){t.status='error';t.error=e.message}
+  }
+
+  state.isGenerating=false;
+  updateGenerateBtn();
+  renderTasks();
+  setStatus(null);
+  const ok=tasksToRun.filter(t=>t.status==='done').length;
+  toast(ok+'/'+tasksToRun.length+' création(s) réussie(s)',ok>0?'success':'error',3500);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════════
+function renderTasks(){
+  const list=document.getElementById('task-list');
+  if(state.tasks.length===0){
+    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--ink-faint);font-size:.78rem;font-style:italic;">Aucune tâche. Lancez une génération.</div>';
+    return;
+  }
+  list.innerHTML=state.tasks.map(t=>{
+    let cls=t.status==='done'?'done':t.status==='error'?'error':'processing';
+    let icon=t.status==='done'?'✓':t.status==='error'?'✕':'⏳';
+    let body='';
+    if(t.result&&t.result.kind==='image'){
+      body='<div class="task-result"><img src="'+t.result.url+'" loading="lazy"></div>';
+    } else if(t.result&&t.result.kind==='video'){
+      body='<div class="task-result"><video src="'+t.result.url+'" controls preload="metadata" playsinline></video></div>';
+    }
+    let actions='';
+    if(t.result){
+      actions='<div class="task-actions">'+
+        '<a href="'+t.result.url+'" download="dianaluxe-'+t.type+'-'+t.id+'.'+(t.type==='image'?'jpg':'mp4')+'" target="_blank" rel="noopener">⬇ Télécharger</a>'+
+        '<button data-regen="'+t.id+'">↻ Régénérer</button>'+
+        '<button data-del="'+t.id+'">✕ Supprimer</button>'+
+      '</div>';
+    }
+    let err=t.error?'<div style="font-size:.68rem;color:var(--error);margin-top:.3rem;">'+esc(t.error)+'</div>':'';
+    return '<div class="task-item '+cls+'">'+
+      '<div class="task-header">'+
+        '<span class="task-type '+t.type+'">'+icon+' '+(t.type==='image'?'Image':'Vidéo')+'</span>'+
+        '<span class="task-status">'+esc(t.progress||t.status)+'</span>'+
+      '</div>'+
+      '<div class="task-prompt">'+esc(t.prompt)+'</div>'+
+      '<div class="task-progress"><div class="task-progress-fill" style="width:'+(t.status==='done'?100:t.status==='error'?100:0)+'%"></div></div>'+
+      err+body+actions+
+    '</div>';
+  }).join('');
+
+  list.querySelectorAll('[data-del]').forEach(b=>{
+    b.addEventListener('click',()=>{state.tasks=state.tasks.filter(t=>t.id!==b.dataset.del);renderTasks()})
+  });
+  list.querySelectorAll('[data-regen]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const t=state.tasks.find(x=>x.id===b.dataset.regen);
+      if(t){document.getElementById('prompt-input').value=t.prompt;window.scrollTo({top:0,behavior:'smooth'});toast('Prompt restauré','success')}
+    })
+  });
+}
+
+function addHistory(item){
+  state.history.unshift(item);
+  if(state.history.length>50)state.history=state.history.slice(0,50);
+  try{localStorage.setItem('dianaluxe_history',JSON.stringify(state.history.slice(0,20)))}catch(e){}
+  renderHistory();
+}
+
+function renderHistory(){
+  const grid=document.getElementById('history-grid'),empty=document.getElementById('history-empty');
+  if(state.history.length===0){grid.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  grid.innerHTML=state.history.slice(0,24).map(h=>{
+    const media=h.type==='image'
+      ?'<img src="'+h.url+'" loading="lazy">'
+      :'<video src="'+h.url+'" preload="metadata" muted playsinline></video>';
+    return '<a class="history-item" href="'+h.url+'" download="dianaluxe-'+h.type+'-'+h.ts+'.'+(h.type==='image'?'jpg':'mp4')+'" target="_blank" rel="noopener">'+
+      media+'<span class="hist-type">'+h.type+'</span></a>';
+  }).join('');
+}
+
+function loadHistory(){
+  try{
+    const raw=localStorage.getItem('dianaluxe_history');
+    if(raw){state.history=JSON.parse(raw)||[]}
+  }catch(e){}
+  renderHistory();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+(function init(){
+  // API
+  document.getElementById('api-save-btn').addEventListener('click',saveKey);
+  document.getElementById('api-key-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveKey()}});
+
+  // Sections
+  document.querySelectorAll('[data-toggle]').forEach(h=>{
+    h.addEventListener('click',()=>{document.getElementById(h.dataset.toggle).classList.toggle('open')})
+  });
+
+  // Mode
+  document.querySelectorAll('.mode-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('selected'));
+      tab.classList.add('selected');
+      state.mode=tab.dataset.mode;
+      document.getElementById('duration-select').parentElement.style.opacity=state.mode==='image'?'0.3':'1';
+      document.getElementById('duration-select').disabled=state.mode==='image';
+    });
+  });
+
+  // References
+  document.getElementById('ref-zone').addEventListener('click',()=>document.getElementById('ref-input').click());
+  document.getElementById('ref-input').addEventListener('change',e=>{handleRefFiles(e.target.files);e.target.value=''});
+
+  // Prompt
+  document.getElementById('prompt-input').addEventListener('input',updateGenerateBtn);
+
+  // Generate
+  document.getElementById('generate-btn').addEventListener('click',runGeneration);
+
+  // Init
+  updateApiUI();
+  renderRefs();
+  loadHistory();
+  renderTasks();
+  updateGenerateBtn();
+
+  const saved=getKey();
+  if(saved){state.apiKey=saved;document.getElementById('api-key-input').value=saved}
+})();
+</script>
+</body>
+</html>
